@@ -1,6 +1,6 @@
 {
-    "name": "@wcm/sitemap-module-am",
-    "version": "0.0.1-0",
+    "name": "@wcm/sitemap-module-sna",
+    "version": "0.0.1-2",
     "description": "Sitemap generator for Slim naar Antwerpen",
     "main": "app",
     "scripts": {

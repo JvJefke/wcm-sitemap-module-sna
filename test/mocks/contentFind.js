@@ -1,5 +1,7 @@
 const sinon = require("sinon");
 
 module.exports = (response) => ({
-	find: sinon.spy(() => new Promise((resolve) => resolve(response)))
+	find: sinon.spy(() => ({
+		lean: () => ({ exec: () => new Promise((resolve) => resolve(response)) })
+	}))
 });

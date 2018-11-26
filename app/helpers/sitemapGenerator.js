@@ -35,7 +35,7 @@ const generateCustomMap = (location, lastmod, changefreq) => {
 const getLocations = (contentItem) => R.compose(
 	R.map(([lang, slug]) => `${lang}/${slug}`),
 	R.toPairs,
-	R.omit("multiLanguage"),
+	R.omit(["multiLanguage"]),
 	R.pathOr(null, ["meta", "slug"])
 )(contentItem)
 
@@ -53,7 +53,7 @@ const getContentAndMapIt = () => R.composeP(
 		"meta.published": true,
 		"meta.deleted": false,
 		"meta.contentType": { $in: ids}
-	}, defaultReturnFields),
+	}, defaultReturnFields).lean().exec(),
 	R.map(R.prop("_id")),
 	() => ContentTypeModel.find({ "meta.canBeFiltered": 1 }, { _id: 1 })
 )();

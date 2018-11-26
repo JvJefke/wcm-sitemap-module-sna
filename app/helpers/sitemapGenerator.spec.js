@@ -20,7 +20,8 @@ describe("Sitemap generator", () => {
 				meta: {
 					slug: {
 						nl: "nederlands-waza",
-						en: "engels-waza"
+						en: "engels-waza",
+						multiLanguage: true
 					},
 					lastModified: new Date(2018, 10, 22, 12, 23, 10, 400).getTime()
 				},
