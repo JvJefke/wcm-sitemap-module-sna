@@ -55,7 +55,7 @@ const getContentAndMapIt = () => R.composeP(
 		"meta.contentType": { $in: ids}
 	}, defaultReturnFields).lean().exec(),
 	R.map(R.prop("_id")),
-	() => ContentTypeModel.find({ "meta.canBeFiltered": 1 }, { _id: 1 })
+	() => ContentTypeModel.find({ "meta.canBeFiltered": true, "meta.deleted": false }, { _id: 1 })
 )();
 
 const removeOldSiteMap = (id) => id ? gridFSHelper.remove(id) : null;
