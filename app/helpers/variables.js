@@ -16,8 +16,5 @@ module.exports.reload = (info) => {
 			variables = vars;
 
 			return Q.when(variables);
-		},
-		(responseError) => {
-			throw responseError;
-		});
+		})
 };

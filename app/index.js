@@ -15,6 +15,3 @@ module.exports = (app, hooks, moduleInfo) => {
 	// Setup routes
 	setupRoutes(app, moduleInfo);
 };
-
-// Exposed API (for other modules)
-module.exports.API = require("./api");
