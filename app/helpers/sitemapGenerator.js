@@ -33,7 +33,7 @@ const generateCustomMap = (location, lastmod, changefreq) => {
 
 // Get slug of a content item and convert it to "[key(=lang)]/[value(=slug)]""
 const getLocations = (contentItem) => R.compose(
-	R.map(([lang, slug]) => `${lang}/${slug}`),
+	R.map(([lang, slug]) => `/${lang}/${slug}`),
 	R.toPairs,
 	R.omit(["multiLanguage"]),
 	R.pathOr(null, ["meta", "slug"])
@@ -58,7 +58,13 @@ const getContentAndMapIt = () => R.composeP(
 	() => ContentTypeModel.find({ "meta.canBeFiltered": true, "meta.deleted": false }, { _id: 1 })
 )();
 
-const removeOldSiteMap = (id) => id ? gridFSHelper.remove(id) : null;
+const removeOldSiteMap = (id) => new Promise((resolve) => {
+	if(id) {
+		gridFSHelper.remove(id)
+	}
+
+	return resolve();
+});
 
 const generateXMLSitemap = (sitemapArray) => {
 	const urlSet = xmlBuilder.create("urlset", { version: "1.0", encoding: "UTF-8" });
@@ -88,10 +94,20 @@ const generateXMLSitemap = (sitemapArray) => {
 	return urlSet.end();
 };
 
+const getFixedSitemapEntries = () => [
+	generateCustomMap("", new Date().toISOString(), DEFAULT_FREQ), // homepage
+	generateCustomMap("/", new Date().toISOString(), DEFAULT_FREQ), // homepage
+	generateCustomMap("/nl", new Date().toISOString(), DEFAULT_FREQ), // homepage
+	generateCustomMap("/en", new Date().toISOString(), DEFAULT_FREQ), // homepage
+	generateCustomMap("/fr", new Date().toISOString(), DEFAULT_FREQ), // homepage
+	generateCustomMap("/de", new Date().toISOString(), DEFAULT_FREQ), // homepage
+];
+
 module.exports = () => {
 	const oldCacheId = currCachId;
 
 	return getContentAndMapIt()
+		.then((sitemapArray) => sitemapArray.concat(getFixedSitemapEntries()))
 		.then((sitemapArray) => {
 			const sitemap = generateXMLSitemap(sitemapArray);
 			const readable = new stream.Readable();
@@ -104,10 +120,18 @@ module.exports = () => {
 		.then((cachedItem) => new Promise((resolve, reject) => cacheController.set(
 			SITEMAP_CACHE_KEY,
 			cachedItem._id,
-			(err) => err ? reject(err) : resolve(cachedItem._id))
-		))
+			(err) => err ? reject(err) : resolve(cachedItem._id)
+		)))
 		.then((id) => currCachId = id)
-		.then(() => removeOldSiteMap(oldCacheId))
+		.then(() => removeOldSiteMap(oldCacheId));
 };
 
 module.exports.getSitemapId = () => currCachId;
+
+const init = () => cacheController.get(SITEMAP_CACHE_KEY, Infinity, (error, id) => {
+	if(!error) {
+		currCachId = id;
+	}
+});
+
+init();

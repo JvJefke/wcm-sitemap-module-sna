@@ -22,7 +22,7 @@ module.exports.init = () => {
 				);
 		},
 		onComplete: () => console.log(null, "CRON: SITEMAP GENERATION COMPLETE!"), // eslint-disable-line no-console
-		start: false,
+		start: true,
 		timeZone: config.server.modules.cron.timeZone,
 		runOnInit: true
 	});
