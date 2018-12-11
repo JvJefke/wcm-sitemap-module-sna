@@ -28,7 +28,7 @@ const getLastMod = (contentItem) => R.compose(
 
 // Generate an object representation of a sitemap entry
 const generateCustomMap = (location, lastmod, changefreq) => {
-	return { location: variablesHelper.get().baseURL + location, lastmod, changefreq };
+	return { loc: variablesHelper.get().baseURL + location, lastmod, changefreq };
 };
 
 // Get slug of a content item and convert it to "[key(=lang)]/[value(=slug)]""
@@ -59,8 +59,12 @@ const getContentAndMapIt = () => R.composeP(
 )();
 
 const removeOldSiteMap = (id) => new Promise((resolve) => {
-	if(id) {
+	if (id && id !== currCachId) {
 		gridFSHelper.remove(id)
+	}
+
+	if (id === currCachId) {
+		console.log("[WARNING] - SITEMAP MODULE: currCachId is the same as the id that is deleted");
 	}
 
 	return resolve();
@@ -74,13 +78,13 @@ const generateXMLSitemap = (sitemapArray) => {
 	urlSet.att("xsi:schemaLocation", "http://www.sitemaps.org/schemas/sitemap/0.9");
 
 	sitemapArray.forEach((item) => {
-		if (!item || !item.location) {
+		if (!item || !item.loc) {
 			return;
 		}
 
 		const url = urlSet.ele("url");
 
-		url.ele("loc", null, item.location);
+		url.ele("loc", null, item.loc);
 
 		if (item.lastmod) {
 			url.ele("lastmod", null, item.lastmod);
@@ -129,7 +133,7 @@ module.exports = () => {
 module.exports.getSitemapId = () => currCachId;
 
 const init = () => cacheController.get(SITEMAP_CACHE_KEY, Infinity, (error, id) => {
-	if(!error) {
+	if (!error) {
 		currCachId = id;
 	}
 });

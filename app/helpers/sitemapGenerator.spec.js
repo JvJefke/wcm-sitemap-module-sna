@@ -42,7 +42,7 @@ describe("Sitemap generator", () => {
 
 		before(() => {
 			sitemapGen = proxyquire("./sitemapGenerator", {
-				"../helpers/variables": { get: () => ({ baseURL: "https://www.example.com/"}) },
+				"../helpers/variables": { get: () => ({ baseURL: "https://www.example.com"}) },
 				[path.join(process.cwd(), "app/models/content")]: spies.contentFind,
 				[path.join(process.cwd(), "app/helpers/gridfs")]: spies.gridfs,
 				[path.join(process.cwd(), "app/controllers/cache")]: spies.cacheController,
@@ -52,14 +52,16 @@ describe("Sitemap generator", () => {
 
 		it("Should generate a sitemap", () => {
 			return sitemapGen().then(() => new Promise((resolve, reject) => {
-				const sitemapToCheckAgainst = fs.readFileSync(path.join(process.cwd(), "test/mocks/sitemap.xml")).toString().trimRight();
+				const sitemapToCheckAgainst = fs.readFileSync(path.join(process.cwd(), "test/mocks/sitemap.xml"))
+					.toString()
+					.trimRight();
 
 				expect(spies.gridfs.writeStreamToGridFS.calledOnce).to.be.true;
 				expect(spies.gridfs.writeStreamToGridFS.firstCall.args).to.have.lengthOf(2);
 				expect(spies.gridfs.writeStreamToGridFS.firstCall.args[0]).to.deep.equal({ fileName: 'sitemap.xml' });
 				expect(spies.gridfs.writeStreamToGridFS.firstCall.args[1]).to.be.instanceof(stream.Readable);
 
-				expect(spies.gridfs.remove.calledOnce).to.be.false;
+				expect(spies.gridfs.remove.calledOnce).to.be.true;
 
 				expect(spies.cacheController.set.calledOnce).to.be.true;
 				expect(spies.cacheController.set.firstCall.args).to.have.lengthOf(3);
@@ -69,22 +71,17 @@ describe("Sitemap generator", () => {
 
 
 				spies.gridfs.writeStreamToGridFS.firstCall.args[1].on("data", (data) => {
-
-					expect(data.toString()).to.be.eq(sitemapToCheckAgainst); // trim off enters and spaces.
+					// replace lastmod with static values to check the whole string against
+					const convertedSitemapResult = data.toString().replace(
+						/\<lastmod\>\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)\<\/lastmod\>/g,
+						"<lastmod>2018-12-10T09:32:00.000Z</lastmod>"
+					);
+					expect(convertedSitemapResult).to.be.eq(sitemapToCheckAgainst); // trim off enters and spaces.
 				});
 				spies.gridfs.writeStreamToGridFS.firstCall.args[1].on("error", (error) => reject(error));
 				spies.gridfs.writeStreamToGridFS.firstCall.args[1].on("end", () => resolve());
-
 			}));
 		});
-
-		it("Should generate a sitemap again but this time cleanup the old sitemap", () => {
-			return sitemapGen().then(() => {
-				expect(spies.gridfs.remove.calledOnce).to.be.true;
-			})
-		});
-
 	});
-
 });
 
