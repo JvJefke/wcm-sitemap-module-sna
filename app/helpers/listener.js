@@ -43,7 +43,7 @@ const generateSitemapObjects = (content) => {
 const sendSSRRequest = (method, body) => request({
 	url: variablesHelper.get().ssrURL,
 	headers: {
-		Authorization: `token ${variablesHelper.get().ssrApiKey}`
+		apikey: variablesHelper.get().ssrKey,
 	},
 	method,
 	body,
@@ -65,7 +65,7 @@ const contentChangeHandler = (content) => {
 		}
 
 		return generateSitemapObjects(leanContent);
-	}).then((data) => sendSSRRequest("POST", data))
+	}).then((data) => data ? sendSSRRequest("POST", data) : null)
 };
 
 const contentRemoveHandler = (content) => {
@@ -81,16 +81,20 @@ const contentRemoveHandler = (content) => {
 	}).then((data) => sendSSRRequest("DELETE", data));
 };
 
+const stop = module.exports.stop = () => {
+	wcmEventWrapper.off("content.created", contentChangeHandler);
+	wcmEventWrapper.off("content.updated", contentChangeHandler);
+	wcmEventWrapper.off("content.removed", contentRemoveHandler);
+	wcmEventWrapper.off("content.unpublished", contentRemoveHandler);
+}
+
 module.exports.start = () => {
+	stop();
+
 	wcmEventWrapper.on("content.created", contentChangeHandler);
 	wcmEventWrapper.on("content.updated", contentChangeHandler);
 	wcmEventWrapper.on("content.removed", contentRemoveHandler);
 	wcmEventWrapper.on("content.unpublished", contentRemoveHandler);
 }
 
-module.exports.stop = () => {
-	wcmEventWrapper.off("content.created", contentChangeHandler);
-	wcmEventWrapper.off("content.updated", contentChangeHandler);
-	wcmEventWrapper.off("content.removed", contentRemoveHandler);
-	wcmEventWrapper.off("content.unpublished", contentRemoveHandler);
-}
+
