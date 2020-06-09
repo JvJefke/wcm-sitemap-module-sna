@@ -2,3 +2,5 @@
 --timeout 15000
 --recursive
 --slow 2
+
+**/*.spec.js

@@ -1,5 +1,3 @@
-"use strict";
-
 var gulp = require("gulp");
 var apidocSwagger = require("gulp-apidoc-swagger");
 var runSequence = require("run-sequence");
